@@ -1,0 +1,43 @@
+{
+  "name": "@mastersof-ai/harness",
+  "version": "0.1.0",
+  "description": "Multi-agent runtime built on the Claude Agent SDK",
+  "type": "module",
+  "bin": {
+    "mastersof-ai": "./bin/mastersof-ai.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "defaults/"
+  ],
+  "scripts": {
+    "start": "tsx src/index.tsx",
+    "dev": "tsx watch src/index.tsx",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "typecheck": "tsc --noEmit",
+    "check": "biome check && tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "latest",
+    "@mozilla/readability": "^0.6.0",
+    "ink": "^6.8.0",
+    "jsdom": "^28.1.0",
+    "marked": "^15.0.12",
+    "marked-terminal": "^7.3.0",
+    "react": "^19.2.4",
+    "tsx": "^4.19.0",
+    "turndown": "^7.2.2",
+    "yaml": "^2.7.0",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.4",
+    "@types/jsdom": "^27.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.2.14",
+    "@types/turndown": "^5.0.6",
+    "typescript": "^5.7.0"
+  }
+}
