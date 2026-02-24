@@ -1,11 +1,11 @@
-import { readdirSync, existsSync } from "node:fs";
-import { createInterface } from "node:readline";
+import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { createInterface } from "node:readline";
 import { render } from "ink";
 import { buildOptions, buildSystemPrompt, sendMessage } from "./agent.js";
 import { DEFAULT_AGENT, getAgentsDir, resolveAgent } from "./agent-context.js";
-import { loadConfig } from "./config.js";
 import { App } from "./components/App.js";
+import { loadConfig } from "./config.js";
 import { createAgent } from "./create-agent.js";
 import { isFirstRun, runFirstRun } from "./first-run.js";
 import { setInkClear } from "./lib/ink-clear.js";
@@ -133,8 +133,7 @@ if (messageIdx !== -1) {
   let initialSessionName: string | null = null;
 
   if (isResume) {
-    const resumeArg =
-      resumeIdx + 1 < args.length && !args[resumeIdx + 1].startsWith("--") ? args[resumeIdx + 1] : null;
+    const resumeArg = resumeIdx + 1 < args.length && !args[resumeIdx + 1].startsWith("--") ? args[resumeIdx + 1] : null;
 
     if (resumeArg) {
       const byId = await loadSession(sessionDirs, resumeArg);

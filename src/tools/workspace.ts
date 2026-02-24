@@ -124,9 +124,15 @@ export function createWorkspaceTools(workspaceDir: string) {
     "Find files by name pattern using fd. Fast, respects .gitignore. Use for locating files in the workspace.",
     {
       pattern: z.string().describe("Search pattern (regex by default, or use -g for glob), e.g. '*.md' or 'STRATEGY'"),
-      path: z.string().optional().describe("Subdirectory relative to workspace root to search. Default: entire workspace."),
+      path: z
+        .string()
+        .optional()
+        .describe("Subdirectory relative to workspace root to search. Default: entire workspace."),
       glob: z.boolean().optional().describe("Use glob pattern instead of regex. Default: false"),
-      type: z.enum(["f", "d"]).optional().describe("Filter by type: 'f' for files, 'd' for directories. Default: both."),
+      type: z
+        .enum(["f", "d"])
+        .optional()
+        .describe("Filter by type: 'f' for files, 'd' for directories. Default: both."),
       max_results: z.number().optional().describe("Max results to return. Default: 50"),
     },
     async ({ pattern, path, glob = false, type, max_results = 50 }) => {
@@ -166,7 +172,10 @@ export function createWorkspaceTools(workspaceDir: string) {
     "Search file contents using ripgrep. Fast, respects .gitignore. Returns matching lines with file paths and line numbers.",
     {
       pattern: z.string().describe("Search pattern (regex)"),
-      path: z.string().optional().describe("Subdirectory relative to workspace root to search. Default: entire workspace."),
+      path: z
+        .string()
+        .optional()
+        .describe("Subdirectory relative to workspace root to search. Default: entire workspace."),
       glob: z.string().optional().describe("File glob filter, e.g. '*.ts' or '*.md'"),
       ignore_case: z.boolean().optional().describe("Case-insensitive search. Default: false"),
       context: z.number().optional().describe("Lines of context around matches. Default: 0"),

@@ -567,13 +567,13 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
       // Process message, then drain the queue
       await processMessage(trimmed);
       while (queueRef.current.length > 0) {
-        const next = queueRef.current.shift()!;
+        const next = queueRef.current.shift() as string;
         setQueueCount(queueRef.current.length);
         await processMessage(next);
       }
       setQueueCount(0);
     },
-    [state.sessionId, state.lastListing, exit, agentContext, config, sessionDirs, processMessage],
+    [state.sessionId, state.lastListing, exit, sessionDirs, processMessage],
   );
 
   const showStatusLine = ctrlCWarning || state.sessionId !== null || state.sessionName !== null || queueCount > 0;

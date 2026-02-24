@@ -13,7 +13,10 @@ export function createShellTools(defaultCwd: string) {
     "Execute a shell command. Runs in the current directory by default. Use for running tests, compiling, git operations, deployments — anything you'd do in a terminal.",
     {
       command: z.string().describe("The command to run, e.g. 'npm test', 'git status', 'ls -la'"),
-      cwd: z.string().optional().describe("Working directory relative to current directory. Default: current directory"),
+      cwd: z
+        .string()
+        .optional()
+        .describe("Working directory relative to current directory. Default: current directory"),
       timeout: z.number().optional().describe("Timeout in ms. Default: 30000"),
     },
     async ({ command, cwd, timeout = DEFAULT_TIMEOUT }) => {
