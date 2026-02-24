@@ -34,6 +34,7 @@ export function buildOptions(
       await appendFile(ctx.stderrLog, `${new Date().toISOString()} ${data}\n`);
     },
     mcpServers: createAgentServers(ctx, config),
+    strictMcpConfig: true,
     agents: createAgentRegistry(ctx.name),
     ...(opts.resume ? { resume: opts.resume } : {}),
   };
