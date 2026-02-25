@@ -25,9 +25,7 @@ mastersof-ai-harness/
 ├── defaults/agents/             — Default agents (copied on first run)
 │   ├── assistant/IDENTITY.md
 │   ├── analyst/IDENTITY.md
-│   └── cofounder/
-│       ├── IDENTITY.md
-│       └── sandbox.json
+│   └── cofounder/IDENTITY.md
 ├── src/
 │   ├── index.tsx                — CLI entry, arg parsing, TUI launch
 │   ├── config.ts                — Config loading + defaults
