@@ -50,6 +50,8 @@ export async function buildSystemPrompt(ctx: AgentContext): Promise<string> {
   const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
   const dateLine = `# Current Date\n\n${date}, ${time} (${tz})`;
 
+  const workspaceLine = `# Workspace\n\nYour workspace directory is \`${ctx.workspaceDir}\`. This is your persistent working directory — files you create here survive across sessions. You can also access any directories mounted in your sandbox config.`;
+
   const parts = [identity];
   if (memoryContext) {
     parts.push(
@@ -57,6 +59,7 @@ export async function buildSystemPrompt(ctx: AgentContext): Promise<string> {
     );
   }
   parts.push(dateLine);
+  parts.push(workspaceLine);
 
   return parts.join("\n\n");
 }

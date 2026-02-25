@@ -91,15 +91,29 @@ const agentContext = resolveAgent(agentName);
 // so decrypted values are available for passthrough into bwrap
 const agentEnvKeys = loadAgentEnv(agentContext.agentDir);
 
-// Sandbox gate: re-exec under bwrap if --sandbox and not already sandboxed
-if (getFlag("sandbox") && !process.env.HARNESS_SANDBOXED) {
+// Sandbox gate: default on for Linux, off for other platforms
+// --no-sandbox to disable, --sandbox to force (backwards compat)
+const isLinux = process.platform === "linux";
+const sandboxEnabled = getFlag("sandbox") || (isLinux && !getFlag("no-sandbox"));
+
+if (sandboxEnabled && !process.env.HARNESS_SANDBOXED) {
+  // Check for bwrap
+  try {
+    (await import("node:child_process")).execFileSync("bwrap", ["--version"], { stdio: "ignore" });
+  } catch {
+    console.error("Sandbox requires bubblewrap (bwrap) but it's not installed.");
+    console.error("  Install: sudo apt install bubblewrap");
+    console.error("  Or run:  mastersof-ai --no-sandbox");
+    process.exit(1);
+  }
+
   const { loadSandboxConfig, execInSandbox } = await import("./sandbox.js");
   const sandboxConfig = loadSandboxConfig(agentContext, { autoCreate: true });
   if (!sandboxConfig) {
     console.error(`No sandbox config found at ~/.mastersof-ai/agents/${agentName}/sandbox.json`);
     process.exit(1);
   }
-  const filteredArgv = process.argv.filter((a) => a !== "--sandbox");
+  const filteredArgv = process.argv.filter((a) => a !== "--sandbox" && a !== "--no-sandbox");
   execInSandbox(agentContext, sandboxConfig, filteredArgv, agentEnvKeys);
 }
 

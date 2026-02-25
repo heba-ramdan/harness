@@ -106,6 +106,7 @@ interface AppState {
   inputKey: number;
   contextTokens: number;
   toolActions: ToolAction[];
+  agentName: string;
 }
 
 type Action =
@@ -125,38 +126,34 @@ type Action =
   | { type: "TOOL_USE_DETAIL"; detail: string };
 
 function reducer(state: AppState, action: Action): AppState {
+  const assistantMsg = (content: string): MessageData => ({
+    role: "assistant",
+    content,
+    agentName: state.agentName,
+  });
+
+  const flushPrevious = (): MessageData[] =>
+    state.lastResponse !== null ? [...state.messages, assistantMsg(state.lastResponse)] : state.messages;
+
   switch (action.type) {
-    case "ADD_USER_MESSAGE": {
-      const base =
-        state.lastResponse !== null
-          ? [...state.messages, { role: "assistant" as const, content: state.lastResponse }]
-          : state.messages;
+    case "ADD_USER_MESSAGE":
       return {
         ...state,
-        messages: [...base, { role: "user", content: action.content }],
+        messages: [...flushPrevious(), { role: "user", content: action.content }],
         lastResponse: null,
         error: null,
       };
-    }
-    case "ADD_SYSTEM_MESSAGE": {
-      const base =
-        state.lastResponse !== null
-          ? [...state.messages, { role: "assistant" as const, content: state.lastResponse }]
-          : state.messages;
+    case "ADD_SYSTEM_MESSAGE":
       return {
         ...state,
-        messages: [...base, { role: "system", content: action.content }],
+        messages: [...flushPrevious(), { role: "system", content: action.content }],
         lastResponse: null,
       };
-    }
     case "STREAM_START":
       return {
         ...state,
         // Flush previous dynamic response into Static before starting a new one
-        messages:
-          state.lastResponse !== null
-            ? [...state.messages, { role: "assistant" as const, content: state.lastResponse }]
-            : state.messages,
+        messages: flushPrevious(),
         lastResponse: null,
         streamBuffer: "",
         thinkingBuffer: "",
@@ -172,7 +169,7 @@ function reducer(state: AppState, action: Action): AppState {
       return {
         ...state,
         messages: action.rendered
-          ? [...state.messages, { role: "assistant" as const, content: action.rendered }]
+          ? [...state.messages, assistantMsg(action.rendered)]
           : state.messages,
         lastResponse: null,
         streamBuffer: "",
@@ -262,6 +259,7 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
     inputKey: 0,
     contextTokens: 0,
     toolActions: [],
+    agentName: agentContext.name,
   });
 
   // Tool input accumulation for extracting details

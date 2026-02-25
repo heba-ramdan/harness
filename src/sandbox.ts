@@ -10,6 +10,8 @@ interface SandboxMount {
 
 interface SandboxConfig {
   enabled?: boolean;
+  workspace?: string;
+  /** @deprecated Use `workspace` instead */
   project?: string;
   mounts?: SandboxMount[];
   env?: string[];
@@ -28,7 +30,7 @@ export function loadSandboxConfig(ctx: AgentContext, opts?: { autoCreate?: boole
   if (!existsSync(configPath)) {
     if (!opts?.autoCreate) return null;
     const defaultConfig: SandboxConfig = {
-      project: process.cwd(),
+      workspace: ctx.workspaceDir,
       env: ["HOME", "PATH", "TERM"],
       network: "host",
     };
@@ -39,6 +41,10 @@ export function loadSandboxConfig(ctx: AgentContext, opts?: { autoCreate?: boole
   }
   const raw = JSON.parse(readFileSync(configPath, "utf-8")) as SandboxConfig;
   if (raw.enabled === false) return null;
+  // Support legacy "project" field
+  if (raw.project && !raw.workspace) {
+    raw.workspace = raw.project;
+  }
   return raw;
 }
 
@@ -91,9 +97,9 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Rec
   // SDK auth + sessions (read-write)
   args.push(...rwBind(join(home, ".claude")));
 
-  // Target project (read-write)
-  if (config.project) {
-    args.push(...rwBind(expandHome(config.project)));
+  // Agent workspace (read-write)
+  if (config.workspace) {
+    args.push(...rwBind(expandHome(config.workspace)));
   }
 
   // Additional mounts
@@ -126,7 +132,7 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Rec
   args.push("--die-with-parent");
 
   // --- Working directory ---
-  args.push("--chdir", config.project ? expandHome(config.project) : ROOT_DIR);
+  args.push("--chdir", config.workspace ? expandHome(config.workspace) : ROOT_DIR);
 
   // --- Environment ---
   args.push("--clearenv");
@@ -154,7 +160,7 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Rec
 
 export function execInSandbox(ctx: AgentContext, config: SandboxConfig, argv: string[], agentEnv?: Record<string, string>): never {
   // Ensure rw directories exist before bwrap tries to bind-mount them
-  for (const dir of [ctx.memoryDir, ctx.stateDir, ctx.sessionsDir, ctx.proposalsDir]) {
+  for (const dir of [ctx.memoryDir, ctx.stateDir, ctx.sessionsDir, ctx.proposalsDir, ctx.workspaceDir]) {
     mkdirSync(dir, { recursive: true });
   }
 

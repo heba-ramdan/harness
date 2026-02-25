@@ -79,5 +79,19 @@ export function createIntrospectionTools(ctx: { identityPath: string; proposalsD
     },
   );
 
-  return [promptRead, promptPropose, toolsRead, toolsPropose];
+  const currentTime = tool(
+    "current_time",
+    "Get the current date, time, and timezone. Use this whenever you need to know the actual time — the date in your system prompt may be stale.",
+    {},
+    async () => {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const now = new Date();
+      const date = now.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+      const time = now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+      return { content: [{ type: "text" as const, text: `${date}, ${time} (${tz})` }] };
+    },
+    { annotations: { readOnlyHint: true } },
+  );
+
+  return [promptRead, promptPropose, toolsRead, toolsPropose, currentTime];
 }

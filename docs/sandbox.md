@@ -1,14 +1,23 @@
 # Sandbox
 
-The `--sandbox` flag runs the harness inside a [bubblewrap](https://github.com/containers/bubblewrap) (`bwrap`) container, isolating the agent's filesystem access.
+On Linux, the harness runs inside a [bubblewrap](https://github.com/containers/bubblewrap) (`bwrap`) container by default, isolating the agent's filesystem access. On other platforms, sandboxing is off (bwrap is Linux-only).
+
+Use `--no-sandbox` to disable, or `--sandbox` to force on.
 
 ## How It Works
 
-When `--sandbox` is passed and `HARNESS_SANDBOXED` is not set, the harness:
+When sandboxing is active and `HARNESS_SANDBOXED` is not set, the harness:
 
-1. Resolves the agent and loads `sandbox.json` from the agent's directory (auto-creates a default if missing)
-2. Re-executes itself under `bwrap` with the `--sandbox` flag stripped and `HARNESS_SANDBOXED=1` set
-3. Inside the sandbox: system dirs are read-only, agent memory and session state are read-write, the project directory (from `sandbox.json`) is read-write
+1. Checks that `bwrap` is installed (exits with install instructions if not)
+2. Resolves the agent and loads `sandbox.json` from the agent's directory (auto-creates a default if missing)
+3. Re-executes itself under `bwrap` with `HARNESS_SANDBOXED=1` set
+4. Inside the sandbox: system dirs are read-only, agent memory/session state are read-write, the workspace directory is read-write
+
+## Agent Workspace
+
+Each agent gets a workspace directory at `~/.mastersof-ai/agents/<name>/workspace/`, auto-created on first run. This is the agent's persistent working directory — files created here survive across sessions.
+
+The workspace is always mounted read-write in sandbox mode and is the default working directory. Agents can access additional directories via `mounts` in `sandbox.json`.
 
 ## Per-Agent Config
 
@@ -16,10 +25,11 @@ Each agent can have a `sandbox.json` in its directory:
 
 ```json
 {
-  "project": "/home/user/my-project",
+  "workspace": "~/.mastersof-ai/agents/ember/workspace",
   "env": ["HOME", "PATH", "TERM"],
   "network": "host",
   "mounts": [
+    { "path": "~/Projects/my-project", "mode": "rw" },
     { "path": "~/data", "mode": "ro" }
   ]
 }
@@ -27,11 +37,13 @@ Each agent can have a `sandbox.json` in its directory:
 
 | Field | Default | Description |
 |-------|---------|-------------|
-| `project` | `process.cwd()` | Working directory, mounted read-write |
+| `workspace` | Agent's workspace dir | Working directory, mounted read-write |
 | `env` | `["HOME", "PATH", "TERM"]` | Environment variables to pass through |
 | `network` | `"host"` | `"host"` or `"none"` (disables networking) |
 | `mounts` | `[]` | Additional bind mounts with `"ro"` or `"rw"` mode |
-| `enabled` | `true` | Set to `false` to skip sandboxing even with `--sandbox` |
+| `enabled` | `true` | Set to `false` to skip sandboxing |
+
+The legacy `project` field is still accepted and mapped to `workspace`.
 
 ## Environment Variables and Secrets
 

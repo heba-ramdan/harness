@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { getHomeDir } from "./config.js";
 
@@ -13,6 +13,7 @@ export interface AgentContext {
   lastSessionFile: string;
   proposalsDir: string;
   stderrLog: string;
+  workspaceDir: string;
 }
 
 export const DEFAULT_AGENT = "cofounder";
@@ -35,6 +36,9 @@ export function resolveAgent(name: string): AgentContext {
   }
 
   const stateDir = join(getHomeDir(), "state", name);
+  const workspaceDir = join(agentDir, "workspace");
+  mkdirSync(workspaceDir, { recursive: true });
+
   return {
     name,
     agentDir,
@@ -46,5 +50,6 @@ export function resolveAgent(name: string): AgentContext {
     lastSessionFile: join(stateDir, "last-session-id"),
     proposalsDir: join(stateDir, "proposals"),
     stderrLog: join(stateDir, "stderr.log"),
+    workspaceDir,
   };
 }
