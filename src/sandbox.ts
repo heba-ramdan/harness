@@ -50,7 +50,7 @@ function rwBind(src: string): string[] {
   return existsSync(src) ? ["--bind", src, src] : [];
 }
 
-function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig): string[] {
+function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Record<string, string>): string[] {
   const home = HOME;
   const args: string[] = [];
 
@@ -140,16 +140,25 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig): string[] {
     }
   }
 
+  // Inject decrypted agent .env values (decrypted before sandbox gate)
+  // DOTENV_PRIVATE_KEY is intentionally excluded — the sandbox gets decrypted values only
+  if (agentEnv) {
+    for (const [key, val] of Object.entries(agentEnv)) {
+      if (key === "DOTENV_PRIVATE_KEY") continue;
+      args.push("--setenv", key, val);
+    }
+  }
+
   return args;
 }
 
-export function execInSandbox(ctx: AgentContext, config: SandboxConfig, argv: string[]): never {
+export function execInSandbox(ctx: AgentContext, config: SandboxConfig, argv: string[], agentEnv?: Record<string, string>): never {
   // Ensure rw directories exist before bwrap tries to bind-mount them
   for (const dir of [ctx.memoryDir, ctx.stateDir, ctx.sessionsDir, ctx.proposalsDir]) {
     mkdirSync(dir, { recursive: true });
   }
 
-  const bwrapArgs = buildBwrapArgs(ctx, config);
+  const bwrapArgs = buildBwrapArgs(ctx, config, agentEnv);
 
   // Resolve tsx loader paths relative to our own node_modules (not the caller's).
   // process.execArgv may point to a different project's tsx installation.

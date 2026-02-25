@@ -7,6 +7,7 @@ import { DEFAULT_AGENT, getAgentsDir, resolveAgent } from "./agent-context.js";
 import { App } from "./components/App.js";
 import { loadConfig } from "./config.js";
 import { createAgent } from "./create-agent.js";
+import { loadAgentEnv } from "./env.js";
 import { isFirstRun, runFirstRun } from "./first-run.js";
 import { setInkClear } from "./lib/ink-clear.js";
 import { findSessionByName, listSessions, loadSession, relativeTime } from "./sessions.js";
@@ -86,6 +87,10 @@ if (getFlag("list-agents")) {
 const agentName = getFlagValue("agent") ?? config.defaultAgent ?? DEFAULT_AGENT;
 const agentContext = resolveAgent(agentName);
 
+// Load per-agent .env (encrypted or plaintext) — must happen before sandbox gate
+// so decrypted values are available for passthrough into bwrap
+const agentEnvKeys = loadAgentEnv(agentContext.agentDir);
+
 // Sandbox gate: re-exec under bwrap if --sandbox and not already sandboxed
 if (getFlag("sandbox") && !process.env.HARNESS_SANDBOXED) {
   const { loadSandboxConfig, execInSandbox } = await import("./sandbox.js");
@@ -95,7 +100,7 @@ if (getFlag("sandbox") && !process.env.HARNESS_SANDBOXED) {
     process.exit(1);
   }
   const filteredArgv = process.argv.filter((a) => a !== "--sandbox");
-  execInSandbox(agentContext, sandboxConfig, filteredArgv);
+  execInSandbox(agentContext, sandboxConfig, filteredArgv, agentEnvKeys);
 }
 
 const sessionDirs = { sessionsDir: agentContext.sessionsDir, lastSessionFile: agentContext.lastSessionFile };
