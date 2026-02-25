@@ -19,7 +19,7 @@ export interface HarnessConfig {
 
 const DEFAULTS: HarnessConfig = {
   model: "claude-opus-4-6",
-  defaultAgent: "assistant",
+  defaultAgent: "cofounder",
   tools: {
     memory: { enabled: true },
     workspace: { enabled: true },
@@ -70,7 +70,7 @@ export const DEFAULT_CONFIG_YAML = `# Masters of AI Harness — Configuration
 model: claude-opus-4-6
 
 # Agent to start when no --agent flag is given
-defaultAgent: assistant
+defaultAgent: cofounder
 
 # Tool domains — disable any you don't need
 tools:

@@ -33,7 +33,7 @@ Welcome to Masters of AI Harness.
 Created ~/.mastersof-ai/ with default agents:
   assistant   general purpose
   analyst     research and analysis
-  ember       co-founder template
+  cofounder   co-founder template
 
 Config:  ~/.mastersof-ai/config.yaml
 Agents:  ~/.mastersof-ai/agents/

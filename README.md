@@ -1,6 +1,16 @@
 # @mastersof-ai/harness
 
-Multi-agent runtime built on the Claude Agent SDK. Run AI agents with custom system prompts, persistent memory, sub-agents, and a full TUI — powered by your Claude Code subscription.
+Multi-agent runtime built on the Claude Agent SDK.
+
+Run your own agents, with full control of the system prompt and context.
+
+Agent environments that wrap Claude Code, implicitly use the Claude Code System prompt.   This 'colors the context' of agents in these environments towards being a coder.
+
+In this harness, you control the system prompt.  Your agent will begin its life purely with the identity you give it, and nothing more.
+
+Feel the difference when you use pure context and interact as close to the model as possible.
+
+Powered by your Claude Code Subscription, via the Claude Agent SDK.  Also includes persistent memory, tools, subagents, optional sandboxing, and a full TUI.
 
 ## Install
 
@@ -21,9 +31,9 @@ mastersof-ai --list-agents            # list available agents
 
 On first run, `~/.mastersof-ai/` is created with three default agents:
 
-- **assistant** — general purpose (default)
+- **cofounder** — co-founder template with self-improvement tools (default)
+- **assistant** — general purpose
 - **analyst** — research and analysis
-- **ember** — co-founder template with self-improvement tools
 
 ## Creating Agents
 
@@ -41,6 +51,7 @@ This creates `~/.mastersof-ai/agents/my-agent/` with a template `IDENTITY.md`. E
 - **Sub-agents.** Researcher (Sonnet), deep-thinker (Opus), and writer (Opus) handle delegated work in separate contexts.
 - **Session management.** Named sessions with resume, rename, and history.
 - **Config-driven.** Optional `~/.mastersof-ai/config.yaml` for model selection and tool toggles.
+- **Sandbox.** Optional `--sandbox` flag runs the agent inside a bubblewrap container for filesystem isolation.
 
 ## Configuration
 
@@ -48,7 +59,7 @@ Edit `~/.mastersof-ai/config.yaml`:
 
 ```yaml
 model: claude-opus-4-6        # default model for all agents
-defaultAgent: assistant        # agent started with no --agent flag
+defaultAgent: cofounder        # agent started with no --agent flag
 
 tools:
   memory:
@@ -88,6 +99,18 @@ Inside the TUI:
 ## Auth
 
 Uses your Claude Code subscription. No API key needed.
+
+## Sandbox
+
+Run any agent in a [bubblewrap](https://github.com/containers/bubblewrap) sandbox for filesystem isolation:
+
+```bash
+mastersof-ai --agent cofounder --sandbox
+```
+
+The sandbox mounts system directories read-only, gives the agent read-write access to its memory, session state, and a configured project directory, and isolates PID/IPC namespaces. On first use, a default `sandbox.json` is created in the agent's directory. Edit it to customize mounts, environment variables, and network access.
+
+Requires `bwrap` to be installed (`apt install bubblewrap` or equivalent).
 
 ## Optional Dependencies
 

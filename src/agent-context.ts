@@ -15,7 +15,7 @@ export interface AgentContext {
   stderrLog: string;
 }
 
-export const DEFAULT_AGENT = "assistant";
+export const DEFAULT_AGENT = "cofounder";
 
 export function getAgentsDir(): string {
   return join(getHomeDir(), "agents");
