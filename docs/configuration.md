@@ -68,6 +68,7 @@ After install and first run:
 │   │   └── IDENTITY.md
 │   └── cofounder/
 │       ├── IDENTITY.md
+│       ├── .env                   — Encrypted secrets (optional, see docs/secrets.md)
 │       ├── sandbox.json           — Per-agent sandbox config
 │       └── memory/
 ├── contexts/                      — Shared context blocks (reserved)

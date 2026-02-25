@@ -11,6 +11,8 @@ Each agent is a directory under `agents/` containing an `IDENTITY.md` file:
 ```
 ~/.mastersof-ai/agents/{name}/
 ├── IDENTITY.md          — Plain markdown, becomes the system prompt
+├── .env                 — Encrypted secrets via dotenvx (optional, see docs/secrets.md)
+├── sandbox.json         — Per-agent sandbox config (optional, see docs/sandbox.md)
 └── memory/
     └── CONTEXT.md       — Persistent memory (optional)
 ```

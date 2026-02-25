@@ -33,6 +33,15 @@ Each agent can have a `sandbox.json` in its directory:
 | `mounts` | `[]` | Additional bind mounts with `"ro"` or `"rw"` mode |
 | `enabled` | `true` | Set to `false` to skip sandboxing even with `--sandbox` |
 
+## Environment Variables and Secrets
+
+The sandbox starts with a clean environment (`--clearenv`). Variables reach the sandbox through two paths:
+
+- **`env` whitelist** in `sandbox.json` — named vars from your shell are passed through (e.g. `"env": ["HOME", "PATH", "TERM", "ANTHROPIC_API_KEY"]`)
+- **Agent `.env` file** — if the agent has a `.env` (encrypted or plaintext), it's decrypted before the sandbox starts and injected directly. No whitelist entry needed. See [Secrets](secrets.md) for details.
+
+`DOTENV_PRIVATE_KEY` is explicitly excluded from the sandbox — only decrypted values enter.
+
 ## Namespace Isolation
 
 The sandbox unshares PID and IPC namespaces. Network is shared by default but can be disabled per-agent. The child process dies with the parent (`--die-with-parent`).
