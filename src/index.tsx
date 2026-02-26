@@ -87,6 +87,9 @@ if (getFlag("list-agents")) {
 const agentName = getFlagValue("agent") ?? config.defaultAgent ?? DEFAULT_AGENT;
 const agentContext = resolveAgent(agentName);
 
+// Start in the agent's workspace directory
+process.chdir(agentContext.workspaceDir);
+
 // Load per-agent .env (encrypted or plaintext) — must happen before sandbox gate
 // so decrypted values are available for passthrough into bwrap
 const agentEnvKeys = loadAgentEnv(agentContext.agentDir);

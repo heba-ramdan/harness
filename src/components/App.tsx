@@ -2,7 +2,6 @@ import type { Query } from "@anthropic-ai/claude-agent-sdk";
 import { Box, Text, useApp, useInput } from "ink";
 import { Marked } from "marked";
 import { markedTerminal } from "marked-terminal";
-import { basename } from "node:path";
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { buildOptions, buildSystemPrompt, sendMessage } from "../agent.js";
 import type { AgentContext } from "../agent-context.js";
@@ -239,7 +238,6 @@ export interface AppProps {
 export function App({ initialSessionId, initialSessionName, agentContext, config }: AppProps) {
   const { exit } = useApp();
 
-  const cwdName = useMemo(() => basename(process.cwd()), []);
   const banner = useMemo(() => agentBanner(agentContext.name), [agentContext.name]);
   const sessionDirs: SessionDirs = useMemo(
     () => ({ sessionsDir: agentContext.sessionsDir, lastSessionFile: agentContext.lastSessionFile }),
@@ -609,11 +607,10 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
         <Text dimColor>{"─".repeat(process.stdout.columns || 80)}</Text>
         <Box justifyContent="space-between">
           <Box>
-            <Text color="cyan" dimColor> {cwdName}</Text>
-            <Text dimColor>  ·  </Text>
-            <Text color="magenta">{agentContext.name}</Text>
+            <Text color="magenta"> {agentContext.name}</Text>
             <Text dimColor>  ·  </Text>
             <Text dimColor>{config.model}</Text>
+            {process.env.HARNESS_SANDBOXED && <Text dimColor>  ·  🔒</Text>}
           </Box>
           <ContextBar tokens={state.contextTokens} />
         </Box>
