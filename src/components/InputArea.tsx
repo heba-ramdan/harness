@@ -1,3 +1,4 @@
+import React from "react";
 import { Box, Text, useStdout } from "ink";
 import { MultilineInput } from "./MultilineInput.js";
 

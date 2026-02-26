@@ -1,3 +1,4 @@
+import React from "react";
 import type { Query } from "@anthropic-ai/claude-agent-sdk";
 import { Box, Text, useApp, useInput } from "ink";
 import { Marked } from "marked";

@@ -1,3 +1,4 @@
+import React from "react";
 import { Box, Text, useInput } from "ink";
 import { useRef, useState } from "react";
 import { openEditorSync } from "../lib/editor.js";

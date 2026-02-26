@@ -1,3 +1,4 @@
+import React from "react";
 import { Static } from "ink";
 import { Message, type MessageData } from "./Message.js";
 
