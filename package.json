@@ -2,6 +2,27 @@
   "name": "@mastersof-ai/harness",
   "version": "0.1.0",
   "description": "Multi-agent runtime built on the Claude Agent SDK",
+  "license": "MIT",
+  "author": "ChenPo LLC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mastersof-ai/harness.git"
+  },
+  "homepage": "https://github.com/mastersof-ai/harness#readme",
+  "bugs": {
+    "url": "https://github.com/mastersof-ai/harness/issues"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "claude",
+    "multi-agent",
+    "runtime",
+    "tui"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "type": "module",
   "bin": {
     "mastersof-ai": "./bin/mastersof-ai.js"
@@ -32,6 +53,9 @@
     "turndown": "^7.2.2",
     "yaml": "^2.7.0",
     "zod": "^4.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

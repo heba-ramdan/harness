@@ -35,6 +35,8 @@ mastersof-ai create my-agent
 
 This creates `~/.mastersof-ai/agents/my-agent/` with a template `IDENTITY.md`. Edit the identity file to customize your agent's personality, instructions, and behavior.
 
+Three example agents ship in `defaults/agents/` (cofounder, assistant, analyst). They're copied to `~/.mastersof-ai/agents/` on first run — use them as templates for your own.
+
 ## How It Works
 
 - **Identity is markdown.** Each agent is defined by an `IDENTITY.md` file — no code required.
@@ -114,6 +116,12 @@ Both are optional. Tools return clear errors if the binaries are missing.
 ## Web Search
 
 Set `BRAVE_API_KEY` environment variable to enable the `web_search` tool. `web_fetch` works without it.
+
+## Troubleshooting
+
+- **`bubblewrap not found`** — Install bwrap (`apt install bubblewrap` or equivalent), or run without `--sandbox`.
+- **API key not set** — Web search requires `BRAVE_API_KEY` to be set in your environment.
+- **No agents on first run** — Check that `~/.mastersof-ai/agents/` was created and contains agent directories. Re-run `mastersof-ai` to trigger first-run setup.
 
 ## License
 
