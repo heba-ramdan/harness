@@ -64,7 +64,7 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Rec
   for (const dir of ["/usr", "/lib", "/lib64", "/bin", "/sbin"]) {
     args.push(...roBind(dir));
   }
-  for (const f of ["/etc/resolv.conf", "/etc/ssl", "/etc/ca-certificates", "/etc/passwd", "/etc/group"]) {
+  for (const f of ["/etc/resolv.conf", "/etc/ssl", "/etc/ca-certificates", "/etc/passwd", "/etc/group", "/etc/localtime", "/etc/timezone"]) {
     args.push(...roBind(f));
   }
 
@@ -96,6 +96,7 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Rec
 
   // SDK auth + sessions (read-write)
   args.push(...rwBind(join(home, ".claude")));
+  args.push(...rwBind(join(home, ".claude.json")));
 
   // Agent workspace (read-write)
   if (config.workspace) {
@@ -137,6 +138,10 @@ function buildBwrapArgs(ctx: AgentContext, config: SandboxConfig, agentEnv?: Rec
   // --- Environment ---
   args.push("--clearenv");
   args.push("--setenv", "HARNESS_SANDBOXED", "1");
+
+  // Always pass timezone so date/time tools report local time
+  const tz = process.env.TZ || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (tz) args.push("--setenv", "TZ", tz);
 
   const envWhitelist = config.env ?? ["HOME", "PATH", "TERM"];
   for (const key of envWhitelist) {
