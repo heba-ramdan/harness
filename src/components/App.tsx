@@ -213,9 +213,9 @@ function ContextBar({ tokens }: { tokens: number }) {
   const filled = Math.round((pct / 100) * width);
 
   let barColor: string;
-  if (pct >= 75) barColor = "red";
-  else if (pct >= 50) barColor = "yellow";
-  else barColor = "green";
+  if (pct >= 75) barColor = "redBright";
+  else if (pct >= 50) barColor = "yellowBright";
+  else barColor = "greenBright";
 
   return (
     <Box>
