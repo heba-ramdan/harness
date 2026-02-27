@@ -5,7 +5,8 @@ A standalone terminal-based agent runtime. Write a markdown agent definition, ru
 ## Docs
 
 - **[Architecture](docs/architecture.md)** — how it works, source layout, tech stack
-- **[Agents](docs/agents.md)** — agent loading, identity, sub-agents, memory
+- **[Agents](docs/agents.md)** — agent loading, identity, sub-agents
+- **[Memory](docs/memory.md)** — persistent memory system, auto-loaded context, memory tools
 - **[Tools](docs/tools.md)** — tool system, available tools, design principles
 - **[Configuration](docs/configuration.md)** — config file, CLI, first run, sessions, user directory layout
 - **[Secrets](docs/secrets.md)** — per-agent encrypted secrets via dotenvx
