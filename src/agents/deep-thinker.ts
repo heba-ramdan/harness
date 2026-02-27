@@ -5,6 +5,7 @@ export function createDeepThinker(toolPrefix: string): AgentDefinition {
     description:
       "Deep analysis agent for complex reasoning, strategy evaluation, and multi-factor decisions. Use when you need to think deeply about a problem — evaluate trade-offs, stress-test assumptions, model second-order effects, or work through a hard decision. Runs on Opus with full thinking enabled.",
     model: "opus",
+    maxTurns: 15,
     prompt: `You are a deep analysis agent.
 
 Your job is to think hard about the problem presented. Not quickly — deeply. Consider multiple angles, surface non-obvious trade-offs, and identify what everyone else would miss.
@@ -34,6 +35,11 @@ Structure your analysis clearly:
       `mcp__${toolPrefix}workspace__grep_files`,
       `mcp__${toolPrefix}memory__memory_read`,
       `mcp__${toolPrefix}memory__memory_list`,
+    ],
+    disallowedTools: [
+      `mcp__${toolPrefix}shell__shell_exec`,
+      `mcp__${toolPrefix}workspace__write_file`,
+      `mcp__${toolPrefix}workspace__edit_file`,
     ],
   };
 }

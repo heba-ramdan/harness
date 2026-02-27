@@ -15,6 +15,10 @@ export interface HarnessConfig {
     introspection: { enabled: boolean };
     models: { enabled: boolean };
   };
+  hooks: {
+    logToolUse: boolean;
+  };
+  effort: "low" | "medium" | "high" | "max";
 }
 
 const DEFAULTS: HarnessConfig = {
@@ -29,6 +33,10 @@ const DEFAULTS: HarnessConfig = {
     introspection: { enabled: true },
     models: { enabled: true },
   },
+  hooks: {
+    logToolUse: false,
+  },
+  effort: "high",
 };
 
 export function getHomeDir(): string {
@@ -72,6 +80,10 @@ model: claude-opus-4-6
 # Agent to start when no --agent flag is given
 defaultAgent: cofounder
 
+# Effort level: low | medium | high | max
+# Controls how much thinking/reasoning effort the model applies
+effort: high
+
 # Tool domains — disable any you don't need
 tools:
   memory:
@@ -88,4 +100,9 @@ tools:
     enabled: true
   models:
     enabled: true
+
+# Hooks — lifecycle callbacks for the agent SDK
+hooks:
+  # Log every tool call to stderr log (tool name, inputs, timing)
+  logToolUse: false
 `;

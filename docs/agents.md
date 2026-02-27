@@ -37,6 +37,14 @@ The harness supports sub-agent delegation — the primary agent can spawn specia
 
 Sub-agents are defined in TypeScript (`src/agents/*.ts`). Each has a name, model, system prompt, and tool access. They are registered via `createAgentRegistry()` and passed to the Claude Agent SDK.
 
+Each sub-agent specifies `maxTurns` to prevent runaway loops and `disallowedTools` for explicit safety constraints:
+
+| Sub-agent | maxTurns | disallowedTools |
+|-----------|----------|-----------------|
+| researcher | 30 | file write, shell exec |
+| deep-thinker | 15 | file write, shell exec |
+| writer | 20 | shell exec |
+
 ## Persistent Memory
 
 Agents read and write to `~/.mastersof-ai/agents/{name}/memory/`. The primary file is `CONTEXT.md`, which accumulates context across sessions. Memory is exposed as a tool — agents decide when and what to remember.

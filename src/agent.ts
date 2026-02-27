@@ -1,5 +1,12 @@
 import { appendFile, mkdir, readFile } from "node:fs/promises";
-import { type Options, type Query, query } from "@anthropic-ai/claude-agent-sdk";
+import {
+  type CanUseTool,
+  type HookCallbackMatcher,
+  type HookEvent,
+  type Options,
+  type Query,
+  query,
+} from "@anthropic-ai/claude-agent-sdk";
 import type { AgentContext } from "./agent-context.js";
 import { createAgentRegistry } from "./agents/index.js";
 import type { HarnessConfig } from "./config.js";
@@ -15,11 +22,73 @@ async function loadMemoryContext(contextFile: string): Promise<string | null> {
   }
 }
 
+function buildHooks(
+  ctx: AgentContext,
+  config: HarnessConfig,
+): Partial<Record<HookEvent, HookCallbackMatcher[]>> | undefined {
+  if (!config.hooks.logToolUse) return undefined;
+
+  const logDir = ctx.stateDir;
+  const logPath = ctx.stderrLog;
+
+  return {
+    PreToolUse: [
+      {
+        hooks: [
+          async (input) => {
+            if (input.hook_event_name === "PreToolUse") {
+              const ts = new Date().toISOString();
+              const toolName = input.tool_name;
+              const toolInput =
+                typeof input.tool_input === "string"
+                  ? input.tool_input.slice(0, 200)
+                  : JSON.stringify(input.tool_input).slice(0, 200);
+              await mkdir(logDir, { recursive: true });
+              await appendFile(logPath, `${ts} [hook:PreToolUse] ${toolName} ${toolInput}\n`);
+            }
+            return { continue: true };
+          },
+        ],
+      },
+    ],
+    PostToolUse: [
+      {
+        hooks: [
+          async (input) => {
+            if (input.hook_event_name === "PostToolUse") {
+              const ts = new Date().toISOString();
+              const toolName = input.tool_name;
+              await mkdir(logDir, { recursive: true });
+              await appendFile(logPath, `${ts} [hook:PostToolUse] ${toolName} complete\n`);
+            }
+            return { continue: true };
+          },
+        ],
+      },
+    ],
+  };
+}
+
+function buildCanUseTool(ctx: AgentContext, config: HarnessConfig): CanUseTool | undefined {
+  if (!config.hooks.logToolUse) return undefined;
+
+  return async (toolName, input) => {
+    const ts = new Date().toISOString();
+    const inputSummary = JSON.stringify(input).slice(0, 200);
+    await mkdir(ctx.stateDir, { recursive: true });
+    await appendFile(ctx.stderrLog, `${ts} [canUseTool] ${toolName} ${inputSummary}\n`);
+    return { behavior: "allow" as const };
+  };
+}
+
 export function buildOptions(
   ctx: AgentContext,
   opts: { resume?: string; systemPrompt: string },
   config: HarnessConfig,
 ): Options {
+  const hooks = buildHooks(ctx, config);
+  const canUseTool = buildCanUseTool(ctx, config);
+
   return {
     model: config.model,
     systemPrompt: opts.systemPrompt,
@@ -27,7 +96,7 @@ export function buildOptions(
     allowDangerouslySkipPermissions: true,
     tools: [],
     thinking: { type: "adaptive" },
-    effort: "high",
+    effort: config.effort,
     includePartialMessages: true,
     stderr: async (data: string) => {
       await mkdir(ctx.stateDir, { recursive: true });
@@ -36,6 +105,8 @@ export function buildOptions(
     mcpServers: createAgentServers(ctx, config),
     strictMcpConfig: true,
     agents: createAgentRegistry(ctx.name),
+    ...(hooks ? { hooks } : {}),
+    ...(canUseTool ? { canUseTool } : {}),
     ...(opts.resume ? { resume: opts.resume } : {}),
   };
 }

@@ -5,6 +5,7 @@ export function createResearcher(toolPrefix: string): AgentDefinition {
     description:
       "Research agent for web searches, reading files, and gathering information. Use when you need to look things up, read documents, scan competitors, check market data, or gather any information before making decisions. Keeps your main context clean by doing the messy search work in a separate context.",
     model: "sonnet",
+    maxTurns: 30,
     prompt: `You are a research assistant.
 
 Your job is to search, read, and return concise, relevant findings. You do NOT make strategic decisions — you gather the raw material so the main agent can think clearly.
@@ -27,6 +28,11 @@ Your job is to search, read, and return concise, relevant findings. You do NOT m
       `mcp__${toolPrefix}workspace__grep_files`,
       `mcp__${toolPrefix}memory__memory_read`,
       `mcp__${toolPrefix}memory__memory_list`,
+    ],
+    disallowedTools: [
+      `mcp__${toolPrefix}shell__shell_exec`,
+      `mcp__${toolPrefix}workspace__write_file`,
+      `mcp__${toolPrefix}workspace__edit_file`,
     ],
   };
 }

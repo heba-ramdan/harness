@@ -5,6 +5,7 @@ export function createWriter(toolPrefix: string): AgentDefinition {
     description:
       "Writing agent for drafting documents, strategy memos, blog posts, and long-form material. Use when you need to produce a draft longer than a few paragraphs. Keeps your main context clean by doing drafts and revisions in a separate context.",
     model: "opus",
+    maxTurns: 20,
     prompt: `You are a writing specialist.
 
 Your job is to produce clear, dense, well-structured content. You write strategy documents, blog posts, memos, and any other long-form content needed.
@@ -34,5 +35,6 @@ Your job is to produce clear, dense, well-structured content. You write strategy
       `mcp__${toolPrefix}web__web_search`,
       `mcp__${toolPrefix}web__web_fetch`,
     ],
+    disallowedTools: [`mcp__${toolPrefix}shell__shell_exec`],
   };
 }

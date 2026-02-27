@@ -7,6 +7,9 @@ Global config lives at `~/.mastersof-ai/config.yaml`.
 ```yaml
 model: claude-opus-4-6
 defaultAgent: cofounder
+effort: high                 # low | medium | high | max (default: high)
+hooks:
+  logToolUse: false          # Log all tool calls via PreToolUse/PostToolUse hooks
 tools:
   memory:
     enabled: true
@@ -25,6 +28,14 @@ tools:
 ```
 
 Config is loaded at startup, deep-merged with defaults. Tools are only created if enabled. Model is read from config and passed to the SDK.
+
+### effort
+
+Controls the reasoning effort level passed to the SDK. Maps to `low`, `medium`, `high`, or `max`. Defaults to `high` if not set.
+
+### hooks.logToolUse
+
+When `true`, the harness registers PreToolUse and PostToolUse hooks with the SDK. Every tool call is logged with its name, input, and result. Useful for debugging tool behavior. Disabled by default.
 
 ## CLI Interface
 

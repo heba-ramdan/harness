@@ -48,6 +48,14 @@ export interface ToolAction {
   detail?: string;
 }
 
+export interface SubagentProgress {
+  taskId: string;
+  description: string;
+  toolUses: number;
+  durationMs: number;
+  status?: "running" | "completed" | "failed" | "stopped";
+}
+
 function truncate(s: string, max: number): string {
   return s.length <= max ? s : `${s.slice(0, max - 1)}…`;
 }
@@ -105,6 +113,7 @@ interface AppState {
   inputKey: number;
   contextTokens: number;
   toolActions: ToolAction[];
+  subagentProgress: Map<string, SubagentProgress>;
   agentName: string;
 }
 
@@ -122,7 +131,10 @@ type Action =
   | { type: "RESET_INPUT" }
   | { type: "UPDATE_CONTEXT"; tokens: number }
   | { type: "TOOL_USE"; name: string }
-  | { type: "TOOL_USE_DETAIL"; detail: string };
+  | { type: "TOOL_USE_DETAIL"; detail: string }
+  | { type: "SUBAGENT_STARTED"; taskId: string; description: string }
+  | { type: "SUBAGENT_PROGRESS"; taskId: string; toolUses: number; durationMs: number }
+  | { type: "SUBAGENT_DONE"; taskId: string; status: "completed" | "failed" | "stopped"; summary: string };
 
 function reducer(state: AppState, action: Action): AppState {
   const assistantMsg = (content: string): MessageData => ({
@@ -159,6 +171,7 @@ function reducer(state: AppState, action: Action): AppState {
         isStreaming: true,
         error: null,
         toolActions: [],
+        subagentProgress: new Map(),
       };
     case "STREAM_TOKEN":
       return { ...state, streamBuffer: state.streamBuffer + action.token };
@@ -194,6 +207,33 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, inputKey: state.inputKey + 1 };
     case "UPDATE_CONTEXT":
       return { ...state, contextTokens: action.tokens };
+    case "SUBAGENT_STARTED": {
+      const next = new Map(state.subagentProgress);
+      next.set(action.taskId, {
+        taskId: action.taskId,
+        description: action.description,
+        toolUses: 0,
+        durationMs: 0,
+        status: "running",
+      });
+      return { ...state, subagentProgress: next };
+    }
+    case "SUBAGENT_PROGRESS": {
+      const next = new Map(state.subagentProgress);
+      const existing = next.get(action.taskId);
+      if (existing) {
+        next.set(action.taskId, { ...existing, toolUses: action.toolUses, durationMs: action.durationMs });
+      }
+      return { ...state, subagentProgress: next };
+    }
+    case "SUBAGENT_DONE": {
+      const next = new Map(state.subagentProgress);
+      const existing = next.get(action.taskId);
+      if (existing) {
+        next.set(action.taskId, { ...existing, status: action.status });
+      }
+      return { ...state, subagentProgress: next };
+    }
   }
 }
 
@@ -255,6 +295,7 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
     inputKey: 0,
     contextTokens: 0,
     toolActions: [],
+    subagentProgress: new Map(),
     agentName: agentContext.name,
   });
 
@@ -340,6 +381,26 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
               await saveSession(sessionDirs, meta);
               dispatch({ type: "SET_SESSION_NAME", name: meta.name });
             }
+          }
+
+          if (msg.type === "system" && (msg as any).subtype === "task_started") {
+            const m = msg as any;
+            dispatch({ type: "SUBAGENT_STARTED", taskId: m.task_id, description: m.description ?? "" });
+          }
+
+          if (msg.type === "system" && (msg as any).subtype === "task_progress") {
+            const m = msg as any;
+            dispatch({
+              type: "SUBAGENT_PROGRESS",
+              taskId: m.task_id,
+              toolUses: m.usage?.tool_uses ?? 0,
+              durationMs: m.usage?.duration_ms ?? 0,
+            });
+          }
+
+          if (msg.type === "system" && (msg as any).subtype === "task_notification") {
+            const m = msg as any;
+            dispatch({ type: "SUBAGENT_DONE", taskId: m.task_id, status: m.status, summary: m.summary ?? "" });
           }
 
           if (msg.type === "stream_event") {
@@ -583,6 +644,7 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
           text={state.streamBuffer}
           thinking={state.thinkingBuffer}
           toolActions={state.toolActions}
+          subagentProgress={state.subagentProgress}
           agentName={agentContext.name}
         />
       )}

@@ -23,3 +23,7 @@ This keeps agent definitions portable. The same agent definition works in a harn
 ## Implementation
 
 Each tool is a separate MCP server in `src/tools/`. The server creation function in `src/tools/index.ts` reads the config and only instantiates enabled tools. Tool servers are passed to the Claude Agent SDK at startup.
+
+## MCP Tool Search
+
+As of SDK 0.2.62, MCP tool search is automatically enabled when tool descriptions exceed 10% of the context window. No configuration is required — the SDK defers less relevant tools and searches for them on demand. This is transparent to agents and requires no changes to tool definitions or config.

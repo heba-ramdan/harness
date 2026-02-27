@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import React from "react";
-import type { ToolAction } from "./App.js";
+import type { SubagentProgress, ToolAction } from "./App.js";
 import { ThinkingAnimation } from "./ThinkingAnimation.js";
 
 function thinkingPreview(text: string, maxLines = 3): string {
@@ -9,16 +9,30 @@ function thinkingPreview(text: string, maxLines = 3): string {
   return tail.join("\n");
 }
 
+function formatDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`;
+  const s = Math.round(ms / 1000);
+  return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
+}
+
 interface StreamingResponseProps {
   text: string;
   thinking: string;
   toolActions: ToolAction[];
+  subagentProgress: Map<string, SubagentProgress>;
   agentName: string;
 }
 
-export function StreamingResponse({ text, thinking, toolActions, agentName }: StreamingResponseProps) {
+export function StreamingResponse({
+  text,
+  thinking,
+  toolActions,
+  subagentProgress,
+  agentName,
+}: StreamingResponseProps) {
   const showThinking = thinking && !text;
   const displayName = agentName.charAt(0).toUpperCase() + agentName.slice(1);
+  const activeSubagents = [...subagentProgress.values()].filter((s) => s.status === "running");
 
   return (
     <Box flexDirection="column" marginTop={1}>
@@ -49,6 +63,17 @@ export function StreamingResponse({ text, thinking, toolActions, agentName }: St
               {action.detail}
             </Text>
           )}
+        </Box>
+      ))}
+      {activeSubagents.map((sa) => (
+        <Box key={sa.taskId}>
+          <Text color="cyan">
+            {"  "}⊳ {sa.description || "subagent"}
+          </Text>
+          <Text dimColor>
+            {"  "}
+            {sa.toolUses} tools · {formatDuration(sa.durationMs)}
+          </Text>
         </Box>
       ))}
       <ThinkingAnimation compact={!!text || !!thinking} agentName={agentName} />

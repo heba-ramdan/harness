@@ -69,7 +69,7 @@ mastersof-ai-harness/
 ## Tech Stack
 
 - **Runtime:** Node.js + tsx (no build step)
-- **SDK:** @anthropic-ai/claude-agent-sdk (Claude Agent SDK)
+- **SDK:** @anthropic-ai/claude-agent-sdk ^0.2.62 (Claude Agent SDK)
 - **TUI:** React + Ink
 - **Tools:** MCP protocol (in-process servers)
 - **Config:** YAML
