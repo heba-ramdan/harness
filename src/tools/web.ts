@@ -124,15 +124,27 @@ export function createWebTools(webConfig?: { extraction_model?: string }) {
       }
 
       // Truncate to ~50k chars to avoid overwhelming context
-      if (markdown.length > 50000) {
+      const wasTruncated = markdown.length > 50000;
+      if (wasTruncated) {
         markdown = `${markdown.slice(0, 50000)}\n\n---\n*[Content truncated at 50,000 characters]*`;
       }
 
+      const stats: string[] = [];
+      const rawChars = markdown.length;
+
       if (query && extractionModel) {
         markdown = await extractRelevantContent(markdown, query, extractionModel);
+        const extractedChars = markdown.length;
+        const savedPct = Math.round((1 - extractedChars / rawChars) * 100);
+        stats.push(
+          `Extracted ${extractedChars.toLocaleString()} chars from ${rawChars.toLocaleString()} (${savedPct}% reduction, ~${Math.round((rawChars - extractedChars) / 4).toLocaleString()} tokens saved)`,
+        );
+      } else {
+        stats.push(`${rawChars.toLocaleString()} chars${wasTruncated ? " (truncated)" : ""}`);
       }
 
-      return { content: [{ type: "text" as const, text: markdown }] };
+      const footer = `\n\n---\n*[${stats.join(" · ")}]*`;
+      return { content: [{ type: "text" as const, text: markdown + footer }] };
     },
     { annotations: { readOnlyHint: true, openWorldHint: true } },
   );

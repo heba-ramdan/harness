@@ -1,6 +1,6 @@
 {
   "name": "@mastersof-ai/harness",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Multi-agent runtime built on the Claude Agent SDK",
   "license": "MIT",
   "author": "ChenPo LLC",
@@ -41,7 +41,7 @@
     "check": "biome check && tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "^0.2.68",
+    "@anthropic-ai/claude-agent-sdk": "^0.2.69",
     "@dotenvx/dotenvx": "^1.52.0",
     "@mozilla/readability": "^0.6.0",
     "ink": "^6.8.0",

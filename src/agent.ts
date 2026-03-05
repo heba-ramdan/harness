@@ -25,14 +25,15 @@ async function loadMemoryContext(contextFile: string): Promise<string | null> {
 function buildHooks(
   ctx: AgentContext,
   config: HarnessConfig,
+  onInstructionsLoaded?: (filePath: string, memoryType: string, loadReason: string) => void,
 ): Partial<Record<HookEvent, HookCallbackMatcher[]>> | undefined {
-  if (!config.hooks.logToolUse) return undefined;
+  const hooks: Partial<Record<HookEvent, HookCallbackMatcher[]>> = {};
 
-  const logDir = ctx.stateDir;
-  const logPath = ctx.stderrLog;
+  if (config.hooks.logToolUse) {
+    const logDir = ctx.stateDir;
+    const logPath = ctx.stderrLog;
 
-  return {
-    PreToolUse: [
+    hooks.PreToolUse = [
       {
         hooks: [
           async (input) => {
@@ -50,8 +51,9 @@ function buildHooks(
           },
         ],
       },
-    ],
-    PostToolUse: [
+    ];
+
+    hooks.PostToolUse = [
       {
         hooks: [
           async (input) => {
@@ -65,8 +67,24 @@ function buildHooks(
           },
         ],
       },
-    ],
-  };
+    ];
+  }
+
+  hooks.InstructionsLoaded = [
+    {
+      hooks: [
+        async (input) => {
+          if (input.hook_event_name === "InstructionsLoaded") {
+            const { file_path, memory_type, load_reason } = input;
+            onInstructionsLoaded?.(file_path, memory_type, load_reason);
+          }
+          return { continue: true };
+        },
+      ],
+    },
+  ];
+
+  return Object.keys(hooks).length > 0 ? hooks : undefined;
 }
 
 function buildCanUseTool(ctx: AgentContext, config: HarnessConfig): CanUseTool | undefined {
@@ -83,10 +101,14 @@ function buildCanUseTool(ctx: AgentContext, config: HarnessConfig): CanUseTool |
 
 export function buildOptions(
   ctx: AgentContext,
-  opts: { resume?: string; systemPrompt: string },
+  opts: {
+    resume?: string;
+    systemPrompt: string;
+    onInstructionsLoaded?: (filePath: string, memoryType: string, loadReason: string) => void;
+  },
   config: HarnessConfig,
 ): Options {
-  const hooks = buildHooks(ctx, config);
+  const hooks = buildHooks(ctx, config, opts.onInstructionsLoaded);
   const canUseTool = buildCanUseTool(ctx, config);
 
   return {

@@ -53,6 +53,7 @@ export interface SubagentProgress {
   description: string;
   toolUses: number;
   durationMs: number;
+  totalTokens: number;
   status?: "running" | "completed" | "failed" | "stopped";
 }
 
@@ -133,8 +134,14 @@ type Action =
   | { type: "TOOL_USE"; name: string }
   | { type: "TOOL_USE_DETAIL"; detail: string }
   | { type: "SUBAGENT_STARTED"; taskId: string; description: string }
-  | { type: "SUBAGENT_PROGRESS"; taskId: string; toolUses: number; durationMs: number }
-  | { type: "SUBAGENT_DONE"; taskId: string; status: "completed" | "failed" | "stopped"; summary: string };
+  | { type: "SUBAGENT_PROGRESS"; taskId: string; toolUses: number; durationMs: number; totalTokens: number }
+  | {
+      type: "SUBAGENT_DONE";
+      taskId: string;
+      status: "completed" | "failed" | "stopped";
+      summary: string;
+      totalTokens: number;
+    };
 
 function reducer(state: AppState, action: Action): AppState {
   const assistantMsg = (content: string): MessageData => ({
@@ -214,6 +221,7 @@ function reducer(state: AppState, action: Action): AppState {
         description: action.description,
         toolUses: 0,
         durationMs: 0,
+        totalTokens: 0,
         status: "running",
       });
       return { ...state, subagentProgress: next };
@@ -222,7 +230,12 @@ function reducer(state: AppState, action: Action): AppState {
       const next = new Map(state.subagentProgress);
       const existing = next.get(action.taskId);
       if (existing) {
-        next.set(action.taskId, { ...existing, toolUses: action.toolUses, durationMs: action.durationMs });
+        next.set(action.taskId, {
+          ...existing,
+          toolUses: action.toolUses,
+          durationMs: action.durationMs,
+          totalTokens: action.totalTokens,
+        });
       }
       return { ...state, subagentProgress: next };
     }
@@ -230,7 +243,7 @@ function reducer(state: AppState, action: Action): AppState {
       const next = new Map(state.subagentProgress);
       const existing = next.get(action.taskId);
       if (existing) {
-        next.set(action.taskId, { ...existing, status: action.status });
+        next.set(action.taskId, { ...existing, status: action.status, totalTokens: action.totalTokens });
       }
       return { ...state, subagentProgress: next };
     }
@@ -356,11 +369,15 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
 
       try {
         const systemPrompt = await buildSystemPrompt(agentContext);
+        const loadedInstructions: string[] = [];
         const options = buildOptions(
           agentContext,
           {
             resume: state.sessionId ?? undefined,
             systemPrompt,
+            onInstructionsLoaded: (filePath, memoryType, loadReason) => {
+              loadedInstructions.push(`  ${memoryType}  ${filePath}  (${loadReason})`);
+            },
           },
           config,
         );
@@ -368,11 +385,21 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
         let responseBuffer = "";
         let activeSessionId = state.sessionId;
         let wasInterrupted = false;
+        let instructionsFlushed = false;
 
         const q = sendMessage(trimmed, options);
         activeQueryRef.current = q;
 
         for await (const msg of q) {
+          // Flush loaded instructions once after init phase
+          if (!instructionsFlushed && loadedInstructions.length > 0 && msg.type !== "system") {
+            instructionsFlushed = true;
+            dispatch({
+              type: "ADD_SYSTEM_MESSAGE",
+              content: `[Instructions loaded]\n${loadedInstructions.join("\n")}`,
+            });
+          }
+
           if (msg.type === "system" && (msg as any).subtype === "init" && msg.session_id) {
             activeSessionId = msg.session_id;
             dispatch({ type: "SET_SESSION", sessionId: msg.session_id });
@@ -395,12 +422,19 @@ export function App({ initialSessionId, initialSessionName, agentContext, config
               taskId: m.task_id,
               toolUses: m.usage?.tool_uses ?? 0,
               durationMs: m.usage?.duration_ms ?? 0,
+              totalTokens: m.usage?.total_tokens ?? 0,
             });
           }
 
           if (msg.type === "system" && (msg as any).subtype === "task_notification") {
             const m = msg as any;
-            dispatch({ type: "SUBAGENT_DONE", taskId: m.task_id, status: m.status, summary: m.summary ?? "" });
+            dispatch({
+              type: "SUBAGENT_DONE",
+              taskId: m.task_id,
+              status: m.status,
+              summary: m.summary ?? "",
+              totalTokens: m.usage?.total_tokens ?? 0,
+            });
           }
 
           if (msg.type === "stream_event") {

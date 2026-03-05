@@ -15,6 +15,11 @@ function formatDuration(ms: number): string {
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
 }
 
+function formatTokens(n: number): string {
+  if (n < 1000) return `${n}`;
+  return `${Math.round(n / 1000)}K`;
+}
+
 interface StreamingResponseProps {
   text: string;
   thinking: string;
@@ -73,6 +78,7 @@ export function StreamingResponse({
           <Text dimColor>
             {"  "}
             {sa.toolUses} tools · {formatDuration(sa.durationMs)}
+            {sa.totalTokens > 0 ? ` · ${formatTokens(sa.totalTokens)} tokens` : ""}
           </Text>
         </Box>
       ))}
