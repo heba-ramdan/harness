@@ -1,7 +1,13 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { resolve } from "node:path";
 import { tool } from "@anthropic-ai/claude-agent-sdk";
 import { z } from "zod";
+
+function safePath(memoryDir: string, filename: string): string | null {
+  const resolved = resolve(memoryDir, filename);
+  if (!resolved.startsWith(`${resolve(memoryDir)}/`) && resolved !== resolve(memoryDir)) return null;
+  return resolved;
+}
 
 export function createMemoryTools(memoryDir: string) {
   const memoryRead = tool(
@@ -9,7 +15,10 @@ export function createMemoryTools(memoryDir: string) {
     "Read a memory file from persistent memory. Use this to recall context from previous sessions — decisions made, strategies discussed, insights captured. Always check memory at the start of a conversation.",
     { filename: z.string().describe("Filename to read from memory directory, e.g. 'CONTEXT.md'") },
     async ({ filename }) => {
-      const filepath = join(memoryDir, filename);
+      const filepath = safePath(memoryDir, filename);
+      if (!filepath) {
+        return { content: [{ type: "text" as const, text: "Error: filename must not escape memory directory." }] };
+      }
       try {
         const content = await readFile(filepath, "utf-8");
         return { content: [{ type: "text" as const, text: content }] };
@@ -29,7 +38,10 @@ export function createMemoryTools(memoryDir: string) {
     },
     async ({ filename, content }) => {
       await mkdir(memoryDir, { recursive: true });
-      const filepath = join(memoryDir, filename);
+      const filepath = safePath(memoryDir, filename);
+      if (!filepath) {
+        return { content: [{ type: "text" as const, text: "Error: filename must not escape memory directory." }] };
+      }
       await writeFile(filepath, content, "utf-8");
       return { content: [{ type: "text" as const, text: `Memory file '${filename}' written successfully.` }] };
     },
@@ -44,7 +56,10 @@ export function createMemoryTools(memoryDir: string) {
       new_str: z.string().describe("Replacement text"),
     },
     async ({ filename, old_str, new_str }) => {
-      const filepath = join(memoryDir, filename);
+      const filepath = safePath(memoryDir, filename);
+      if (!filepath) {
+        return { content: [{ type: "text" as const, text: "Error: filename must not escape memory directory." }] };
+      }
       let content: string;
       try {
         content = await readFile(filepath, "utf-8");
@@ -86,7 +101,10 @@ export function createMemoryTools(memoryDir: string) {
       text: z.string().describe("Text to insert"),
     },
     async ({ filename, line, text }) => {
-      const filepath = join(memoryDir, filename);
+      const filepath = safePath(memoryDir, filename);
+      if (!filepath) {
+        return { content: [{ type: "text" as const, text: "Error: filename must not escape memory directory." }] };
+      }
       let content: string;
       try {
         content = await readFile(filepath, "utf-8");

@@ -13,17 +13,12 @@ function resolveModel(input: string): string {
 
 type ThinkingLevel = "disabled" | "low" | "medium" | "high" | "max";
 
-const THINKING_BUDGETS: Record<Exclude<ThinkingLevel, "disabled">, number> = {
-  low: 1024,
-  medium: 4096,
-  high: 16384,
-  max: 32768,
+const EFFORT_MAP: Record<Exclude<ThinkingLevel, "disabled">, "low" | "medium" | "high" | "max"> = {
+  low: "low",
+  medium: "medium",
+  high: "high",
+  max: "max",
 };
-
-function buildThinkingConfig(level: ThinkingLevel): { type: "enabled"; budget_tokens: number } | { type: "disabled" } {
-  if (level === "disabled") return { type: "disabled" };
-  return { type: "enabled", budget_tokens: THINKING_BUDGETS[level] };
-}
 
 function extractTextFromContent(content: any[]): { text: string; thinkingTokenEstimate: number } {
   const textParts: string[] = [];
@@ -51,24 +46,30 @@ async function queryModel(opts: {
   model: string;
   systemPrompt?: string;
   message: string;
-  maxTokens: number;
   thinking: ThinkingLevel;
 }): Promise<{ text: string; usage: string }> {
   let responseText = "";
   let usageInfo = "";
-  const thinkingConfig = buildThinkingConfig(opts.thinking);
+
+  const queryOptions: Parameters<typeof query>[0]["options"] = {
+    model: opts.model,
+    systemPrompt: opts.systemPrompt ?? "You are a helpful assistant.",
+    tools: [],
+    mcpServers: {},
+    maxTurns: 1,
+    persistSession: false,
+  };
+
+  if (opts.thinking === "disabled") {
+    queryOptions.thinking = { type: "disabled" };
+  } else {
+    queryOptions.thinking = { type: "adaptive" };
+    queryOptions.effort = EFFORT_MAP[opts.thinking];
+  }
 
   for await (const msg of query({
     prompt: opts.message,
-    options: {
-      model: opts.model,
-      systemPrompt: opts.systemPrompt ?? "You are a helpful assistant.",
-      tools: [],
-      mcpServers: {},
-      maxTurns: 1,
-      persistSession: false,
-      thinking: thinkingConfig,
-    },
+    options: queryOptions,
   })) {
     if (msg.type === "assistant") {
       // SDKAssistantMessage.message is a BetaMessage with .content array
@@ -111,17 +112,13 @@ const modelQuery = tool(
     model: z.string().describe('Model ID or alias: "haiku", "sonnet", "opus", or full ID like "claude-haiku-4-5"'),
     message: z.string().describe("The user message to send"),
     system_prompt: z.string().optional().describe("System prompt for this query"),
-    max_tokens: z.number().optional().describe("Maximum response tokens. Default: 4096"),
     thinking: z
       .enum(["disabled", "low", "medium", "high", "max"])
       .optional()
-      .describe(
-        "Thinking effort level. Default: 'disabled'. Low=1024, medium=4096, high=16384, max=32768 budget tokens.",
-      ),
+      .describe("Thinking effort level. Default: 'disabled'. Uses adaptive thinking with the specified effort."),
   },
-  async ({ model, message, system_prompt, max_tokens, thinking }) => {
+  async ({ model, message, system_prompt, thinking }) => {
     const resolvedModel = resolveModel(model);
-    const maxTokens = max_tokens ?? 4096;
     const thinkingLevel: ThinkingLevel = thinking ?? "disabled";
 
     try {
@@ -129,7 +126,6 @@ const modelQuery = tool(
         model: resolvedModel,
         systemPrompt: system_prompt,
         message,
-        maxTokens,
         thinking: thinkingLevel,
       });
 

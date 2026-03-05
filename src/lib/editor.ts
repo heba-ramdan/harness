@@ -12,7 +12,6 @@ export function openEditorSync(text: string): string | null {
     writeFileSync(tmpFile, text);
     const result = spawnSync(editor, [tmpFile], {
       stdio: "inherit",
-      shell: true,
     });
     if (result.status !== 0) return null;
     return readFileSync(tmpFile, "utf-8");

@@ -1,8 +1,19 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { query as sdkQuery, tool } from "@anthropic-ai/claude-agent-sdk";
 import { Readability } from "@mozilla/readability";
 import { JSDOM, VirtualConsole } from "jsdom";
 import TurndownService from "turndown";
 import { z } from "zod";
+
+const PKG_VERSION = (() => {
+  try {
+    const pkg = JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "package.json"), "utf-8"));
+    return pkg.version ?? "0.0.0";
+  } catch {
+    return "0.0.0";
+  }
+})();
 
 const turndown = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fenced" });
 
@@ -101,7 +112,7 @@ export function createWebTools(webConfig?: { extraction_model?: string }) {
     async ({ url, query }) => {
       const res = await fetch(url, {
         headers: {
-          "User-Agent": "MastersOfAI-Harness/0.1.0",
+          "User-Agent": `MastersOfAI-Harness/${PKG_VERSION}`,
         },
       });
 

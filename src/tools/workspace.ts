@@ -39,7 +39,7 @@ export function createWorkspaceTools(workspaceDir: string) {
     },
     async ({ path }) => {
       const target = resolve(workspaceDir, path);
-      if (!target.startsWith(workspaceDir)) {
+      if (!target.startsWith(`${resolve(workspaceDir)}/`)) {
         return { content: [{ type: "text" as const, text: "Path must be within workspace." }] };
       }
       try {
@@ -61,7 +61,7 @@ export function createWorkspaceTools(workspaceDir: string) {
     },
     async ({ path, content }) => {
       const target = resolve(workspaceDir, path);
-      if (!target.startsWith(resolve(workspaceDir))) {
+      if (!target.startsWith(`${resolve(workspaceDir)}/`)) {
         return { content: [{ type: "text" as const, text: "Error: path escapes workspace boundary." }] };
       }
       try {
@@ -84,7 +84,7 @@ export function createWorkspaceTools(workspaceDir: string) {
     },
     async ({ path, old_str, new_str }) => {
       const target = resolve(workspaceDir, path);
-      if (!target.startsWith(resolve(workspaceDir))) {
+      if (!target.startsWith(`${resolve(workspaceDir)}/`)) {
         return { content: [{ type: "text" as const, text: "Error: path escapes workspace boundary." }] };
       }
       let content: string;
